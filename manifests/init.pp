@@ -1,14 +1,44 @@
-class phantomjs($version = "1.5.0" ) {
+class phantomjs(
+    $version = '1.5.0',
+    $phantom_bin_path = '/opt/phantomjs',
+) {
 
     if $::architecture == "amd64" or $::architecture == "x86_64" {
         $platid = "x86_64"
     } else {
-        $platid = "x86"
+
+        case $version {
+            '1.4.1', '1.5.0': {
+                $platid = 'x86'
+            }
+            '1.6.0', '1.6.1', '1.7.0': {
+                $platid = 'i686'
+            }
+        }
     }
 
-    $filename = "phantomjs-${version}-linux-${platid}-dynamic.tar.gz"
+    case $version {
+        '1.4.1', '1.5.0': {
+            $extension = 'tar.gz'
+            $extract_command = 'xvfz'
+        }
+        '1.6.0', '1.6.1', '1.7.0': {
+            $extension = 'tar.bz2'
+            $extract_command = 'xvfj'
+        }
+    }
+
+    case $version {
+        '1.4.1', '1.5.0', '1.6.0', '1.6.1': {
+            $variant = '-dynamic'
+        }
+        '1.7.0': {
+            $variant = ''
+        }
+    }
+
+    $filename = "phantomjs-${version}-linux-${platid}${variant}.${extension}"
     $phantom_src_path = "/usr/local/src/phantomjs-${version}/"
-    $phantom_bin_path = "/opt/phantomjs/"
 
     file { $phantom_src_path : ensure => directory }
 
@@ -20,7 +50,7 @@ class phantomjs($version = "1.5.0" ) {
     }
     
     exec { "extract-${filename}" :
-        command     => "tar xvfz ${filename} -C /opt/",
+        command     => "tar ${extract_command} ${filename} -C /opt/",
         creates     => "/opt/phantomjs/",
         cwd         => $phantom_src_path,
         require     => Exec["download-${filename}"],
