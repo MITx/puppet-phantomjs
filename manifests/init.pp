@@ -52,7 +52,7 @@ class phantomjs(
     
     exec { "extract-${filename}" :
         command     => "tar ${extract_command} ${filename} -C ${phantom_bin_path} --strip-components 1",
-        creates     => "/opt/phantomjs/",
+        creates     => "${phantom_bin_path}/bin/phantomjs",
         cwd         => $phantom_src_path,
         require     => [Exec["download-${filename}"], File[$phantom_bin_path]],
     }
@@ -60,19 +60,19 @@ class phantomjs(
     file { "/usr/local/bin/phantomjs" :
         target => "${phantom_bin_path}/bin/phantomjs",
         ensure => link,
-        require     => Exec["extract-${filename}"],
+        require => Exec["extract-${filename}"],
     }
     
     file { "/usr/bin/phantomjs" :
         target => "${phantom_bin_path}/bin/phantomjs",
         ensure => link,
-        require     => Exec["extract-${filename}"],
+        require => Exec["extract-${filename}"],
     }
     
     exec { "nuke-old-version-on-upgrade" :
-        command => "rm -Rf /opt/phantomjs /usr/local/bin/phantomjs",
+        command => "rm -Rf ${phantom_bin_path} /usr/local/bin/phantomjs",
         unless => "test -f /usr/local/bin/phantomjs && /usr/local/bin/phantomjs --version | grep ${version}",
-        before => Exec["download-${filename}"]
+        before => [File[$phantom_bin_path], Exec["download-${filename}"]],
     }
 
 }
