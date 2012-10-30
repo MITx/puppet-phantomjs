@@ -50,7 +50,7 @@ class phantomjs(
     }
     
     exec { "extract-${filename}" :
-        command     => "tar ${extract_command} ${filename} -C /opt/",
+        command     => "tar ${extract_command} ${filename} -C ${phantom_bin_path} --strip-components 1",
         creates     => "/opt/phantomjs/",
         cwd         => $phantom_src_path,
         require     => Exec["download-${filename}"],
