@@ -41,6 +41,7 @@ class phantomjs(
     $phantom_src_path = "/usr/local/src/phantomjs-${version}/"
 
     file { $phantom_src_path : ensure => directory }
+    file { $phantom_bin_path : ensure => directory }
 
     exec { "download-${filename}" : 
         command => "wget http://phantomjs.googlecode.com/files/${filename} -O ${filename}",
@@ -53,7 +54,7 @@ class phantomjs(
         command     => "tar ${extract_command} ${filename} -C ${phantom_bin_path} --strip-components 1",
         creates     => "/opt/phantomjs/",
         cwd         => $phantom_src_path,
-        require     => Exec["download-${filename}"],
+        require     => [Exec["download-${filename}"], File[$phantom_bin_path]],
     }
 
     file { "/usr/local/bin/phantomjs" :
